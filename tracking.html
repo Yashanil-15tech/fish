@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Track Order — Malpe Meen</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --green: #0d3d2e; --green-mid: #1a5c40; --green-light: #e8f5e0;
+    --accent: #5fcf80; --cream: #f7f4ef; --warm: #f0ede6;
+    --text: #1a1a1a; --muted: #888; --border: #e5e5e5; --white: #fff;
+    --blue: #1a6fb5; --blue-light: #e8f2fc; --orange: #c45e0a; --orange-light: #fef0e4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+
+  nav {
+    background: var(--green); padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--green-light); }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link {
+    color: #a8d5b0; font-size: 13px; font-weight: 500;
+    padding: 6px 12px; border-radius: 8px; text-decoration: none; transition: background 0.15s, color 0.15s;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-link.active { background: rgba(255,255,255,0.12); color: #fff; }
+  @media(max-width:700px){ .nav-links { display: none; } nav { padding: 0 16px; } }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px; color: var(--green); margin-bottom: 4px;
+  }
+  .page-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+  /* Order info bar */
+  .order-bar {
+    background: var(--white); border-radius: 16px;
+    border: 1.5px solid var(--border); padding: 20px 24px;
+    display: flex; gap: 32px; flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .ob-item { }
+  .ob-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .ob-val { font-size: 15px; font-weight: 600; color: var(--text); }
+  .ob-val.green { color: var(--green); }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #e6f7ed; color: #1a7a40; border-radius: 50px;
+    padding: 5px 12px; font-size: 12px; font-weight: 600;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Route map SVG card */
+  .map-card {
+    background: var(--white); border-radius: 16px;
+    border: 1.5px solid var(--border); padding: 24px;
+    margin-bottom: 28px; overflow: hidden;
+  }
+  .map-card h3 { font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 20px; }
+
+  .route-svg-wrap { width: 100%; overflow-x: auto; }
+
+  /* Timeline steps */
+  .timeline-card {
+    background: var(--white); border-radius: 16px;
+    border: 1.5px solid var(--border); padding: 24px;
+    margin-bottom: 28px;
+  }
+  .timeline-card h3 { font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 20px; }
+
+  .steps { position: relative; }
+  .steps::before {
+    content: ''; position: absolute; left: 19px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+
+  .step { display: flex; gap: 16px; margin-bottom: 24px; position: relative; }
+  .step:last-child { margin-bottom: 0; }
+
+  .step-icon {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; border: 2px solid var(--border);
+    background: var(--white); z-index: 1;
+  }
+  .step.done .step-icon { background: var(--green); border-color: var(--green); }
+  .step.active .step-icon { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px rgba(95,207,128,0.2); }
+  .step.pending .step-icon { background: var(--warm); }
+
+  .step-body { padding-top: 6px; flex: 1; }
+  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .step.done .step-title { color: var(--text); }
+  .step.active .step-title { color: var(--green); }
+  .step.pending .step-title { color: var(--muted); }
+  .step-time { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .step-tag {
+    display: inline-block; margin-top: 6px;
+    background: var(--green-light); color: var(--green-mid);
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+  }
+  .step.active .step-tag { background: #e6f7ed; color: #1a7a40; }
+
+  /* ETA card */
+  .eta-card {
+    background: var(--green); border-radius: 16px;
+    padding: 24px; display: flex; gap: 20px;
+    align-items: center; flex-wrap: wrap;
+  }
+  .eta-left { flex: 1; }
+  .eta-label { font-size: 12px; color: #a8d5b0; margin-bottom: 4px; }
+  .eta-time { font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--white); }
+  .eta-date { font-size: 13px; color: #a8d5b0; margin-top: 2px; }
+  .eta-right { text-align: right; }
+  .eta-dist { font-size: 13px; color: #a8d5b0; }
+  .eta-dist strong { color: var(--green-light); font-size: 15px; display: block; }
+  .eta-temp { margin-top: 8px; font-size: 13px; color: #a8d5b0; }
+  .eta-temp strong { color: var(--accent); }
+
+  /* Waypoints below map */
+  .waypoints {
+    display: flex; gap: 0; margin-top: 16px;
+    background: var(--warm); border-radius: 12px; overflow: hidden;
+  }
+  .wp {
+    flex: 1; padding: 12px 14px; border-right: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .wp:last-child { border-right: none; }
+  .wp-name { font-weight: 600; color: var(--green); font-size: 13px; margin-bottom: 2px; }
+  .wp-time { color: var(--muted); }
+  .wp-status { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .wp-status.done { color: #1a7a40; }
+  .wp-status.active { color: var(--orange); }
+  .wp-status.pending { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Malpe <span>Meen</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">🛒 Order</a>
+    <a class="nav-link active" href="tracking.html">📍 Track Order</a>
+    <a class="nav-link" href="freshness.html">🧊 Freshness</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-title">Track Your Order</div>
+  <div class="page-sub">Malpe → Mangalore → Bangalore · Order #MM-20483</div>
+
+  <!-- Order bar -->
+  <div class="order-bar">
+    <div class="ob-item">
+      <div class="ob-label">Order ID</div>
+      <div class="ob-val">#MM-20483</div>
+    </div>
+    <div class="ob-item">
+      <div class="ob-label">Items</div>
+      <div class="ob-val">Kingfish × 2 · Prawns × 1</div>
+    </div>
+    <div class="ob-item">
+      <div class="ob-label">Status</div>
+      <div class="ob-val"><span class="status-pill"><span class="status-dot"></span>In Transit</span></div>
+    </div>
+    <div class="ob-item">
+      <div class="ob-label">Delivering to</div>
+      <div class="ob-val green">Koramangala, Bangalore</div>
+    </div>
+  </div>
+
+  <!-- ETA banner -->
+  <div class="eta-card" style="margin-bottom:28px">
+    <div class="eta-left">
+      <div class="eta-label">Estimated arrival</div>
+      <div class="eta-time">6:30 AM</div>
+      <div class="eta-date">Tomorrow · Tuesday, Apr 1</div>
+    </div>
+    <div class="eta-right">
+      <div class="eta-dist"><strong>~360 km</strong> Malpe → Bangalore</div>
+      <div class="eta-temp">🌡 Cold chain: <strong>2–4°C</strong></div>
+    </div>
+  </div>
+
+  <!-- Route map -->
+  <div class="map-card">
+    <h3>📍 Live Route — Malpe to Bangalore</h3>
+    <div class="route-svg-wrap">
+      <svg viewBox="0 0 820 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:520px;height:auto">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#0d3d2e" opacity="0.4"/>
+          </marker>
+        </defs>
+
+        <!-- Background regions -->
+        <rect x="0" y="0" width="820" height="260" fill="#f0f7f2" rx="10"/>
+
+        <!-- Sea (left) -->
+        <rect x="0" y="0" width="120" height="260" fill="#daeef8" rx="10"/>
+        <text x="30" y="130" font-size="10" fill="#7ab5d0" font-family="DM Sans,sans-serif" transform="rotate(-90,30,130)" text-anchor="middle">Arabian Sea</text>
+
+        <!-- Karnataka hills hint -->
+        <ellipse cx="500" cy="260" rx="320" ry="80" fill="#e5f0e5" opacity="0.5"/>
+
+        <!-- Route path: Malpe → Udupi → Mangalore → Hassan → Bangalore -->
+        <path d="M 140,140 C 200,140 220,140 260,140 C 310,140 330,150 380,150 C 440,150 460,140 540,120 C 600,105 640,100 690,95" 
+              stroke="#0d3d2e" stroke-width="3" stroke-dasharray="8 5" fill="none" opacity="0.35" marker-end="url(#arr)"/>
+
+        <!-- Animated truck on path -->
+        <circle r="10" fill="#0d3d2e" opacity="0.9">
+          <animateMotion dur="6s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#routePath"/>
+          </animateMotion>
+        </circle>
+        <path id="routePath" d="M 140,140 C 200,140 220,140 260,140 C 310,140 330,150 380,150 C 440,150 460,140 540,120 C 600,105 640,100 690,95" fill="none"/>
+        <text font-size="12" fill="white">
+          <textPath href="#routePath" startOffset="0%">
+            <animate attributeName="startOffset" from="0%" to="100%" dur="6s" repeatCount="indefinite"/>
+            🚚
+          </textPath>
+        </text>
+
+        <!-- Waypoint dots -->
+        <!-- Malpe (done) -->
+        <circle cx="140" cy="140" r="10" fill="#0d3d2e"/>
+        <circle cx="140" cy="140" r="6" fill="#5fcf80"/>
+        <text x="140" y="165" text-anchor="middle" font-size="11" font-weight="600" fill="#0d3d2e" font-family="DM Sans,sans-serif">Malpe</text>
+        <text x="140" y="178" text-anchor="middle" font-size="10" fill="#888" font-family="DM Sans,sans-serif">3:00 AM ✓</text>
+
+        <!-- Udupi (done) -->
+        <circle cx="260" cy="140" r="10" fill="#0d3d2e"/>
+        <circle cx="260" cy="140" r="6" fill="#5fcf80"/>
+        <text x="260" y="165" text-anchor="middle" font-size="11" font-weight="600" fill="#0d3d2e" font-family="DM Sans,sans-serif">Udupi</text>
+        <text x="260" y="178" text-anchor="middle" font-size="10" fill="#888" font-family="DM Sans,sans-serif">4:00 AM ✓</text>
+
+        <!-- Mangalore (done) -->
+        <circle cx="380" cy="150" r="10" fill="#0d3d2e"/>
+        <circle cx="380" cy="150" r="6" fill="#5fcf80"/>
+        <text x="380" y="175" text-anchor="middle" font-size="11" font-weight="600" fill="#0d3d2e" font-family="DM Sans,sans-serif">Mangalore</text>
+        <text x="380" y="188" text-anchor="middle" font-size="10" fill="#888" font-family="DM Sans,sans-serif">5:30 AM ✓</text>
+
+        <!-- Hassan (active — truck here) -->
+        <circle cx="540" cy="120" r="13" fill="#5fcf80" opacity="0.25"/>
+        <circle cx="540" cy="120" r="10" fill="#1a5c40"/>
+        <circle cx="540" cy="120" r="5" fill="white"/>
+        <text x="540" y="103" text-anchor="middle" font-size="11" font-weight="700" fill="#0d3d2e" font-family="DM Sans,sans-serif">Hassan</text>
+        <text x="540" y="91" text-anchor="middle" font-size="10" fill="#1a7a40" font-weight="600" font-family="DM Sans,sans-serif">● En route</text>
+
+        <!-- Bangalore (pending) -->
+        <circle cx="690" cy="95" r="10" fill="#e0e0e0"/>
+        <circle cx="690" cy="95" r="6" fill="#bbb"/>
+        <text x="690" y="120" text-anchor="middle" font-size="11" font-weight="600" fill="#888" font-family="DM Sans,sans-serif">Bangalore</text>
+        <text x="690" y="133" text-anchor="middle" font-size="10" fill="#aaa" font-family="DM Sans,sans-serif">~6:30 AM</text>
+
+        <!-- Koramangala pin -->
+        <circle cx="720" cy="75" r="8" fill="#c45e0a" opacity="0.9"/>
+        <circle cx="720" cy="75" r="4" fill="white"/>
+        <text x="750" y="72" font-size="11" font-weight="600" fill="#c45e0a" font-family="DM Sans,sans-serif">Koramangala</text>
+        <text x="750" y="84" font-size="10" fill="#888" font-family="DM Sans,sans-serif">Your location</text>
+        <line x1="692" y1="88" x2="716" y2="78" stroke="#c45e0a" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.6"/>
+
+        <!-- Distance labels -->
+        <text x="200" y="130" text-anchor="middle" font-size="10" fill="#aaa" font-family="DM Sans,sans-serif">18 km</text>
+        <text x="320" y="130" text-anchor="middle" font-size="10" fill="#aaa" font-family="DM Sans,sans-serif">56 km</text>
+        <text x="460" y="132" text-anchor="middle" font-size="10" fill="#aaa" font-family="DM Sans,sans-serif">180 km</text>
+        <text x="615" y="103" text-anchor="middle" font-size="10" fill="#aaa" font-family="DM Sans,sans-serif">118 km</text>
+
+        <!-- Cold chain badge -->
+        <rect x="10" y="10" width="100" height="26" rx="8" fill="#0d3d2e" opacity="0.85"/>
+        <text x="60" y="27" text-anchor="middle" font-size="11" fill="#5fcf80" font-weight="600" font-family="DM Sans,sans-serif">🧊 2–4°C live</text>
+      </svg>
+    </div>
+
+    <!-- Waypoint summary bar -->
+    <div class="waypoints">
+      <div class="wp">
+        <div class="wp-name">🎣 Malpe</div>
+        <div class="wp-time">Departed 3:00 AM</div>
+        <div class="wp-status done">✓ Done</div>
+      </div>
+      <div class="wp">
+        <div class="wp-name">🏘 Udupi</div>
+        <div class="wp-time">4:00 AM</div>
+        <div class="wp-status done">✓ Done</div>
+      </div>
+      <div class="wp">
+        <div class="wp-name">🏙 Mangalore</div>
+        <div class="wp-time">5:30 AM</div>
+        <div class="wp-status done">✓ Done</div>
+      </div>
+      <div class="wp">
+        <div class="wp-name">🌄 Hassan</div>
+        <div class="wp-time">Now</div>
+        <div class="wp-status active">⟳ En route</div>
+      </div>
+      <div class="wp">
+        <div class="wp-name">🏙 Bangalore</div>
+        <div class="wp-time">~6:30 AM</div>
+        <div class="wp-status pending">Pending</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step timeline -->
+  <div class="timeline-card">
+    <h3>Order Timeline</h3>
+    <div class="steps">
+
+      <div class="step done">
+        <div class="step-icon">✓</div>
+        <div class="step-body">
+          <div class="step-title">Order Placed</div>
+          <div class="step-time">Yesterday · 8:42 PM</div>
+          <div class="step-desc">Your order was confirmed. Payment received.</div>
+        </div>
+      </div>
+
+      <div class="step done">
+        <div class="step-icon">✓</div>
+        <div class="step-body">
+          <div class="step-title">Catch Hauled at Malpe Port</div>
+          <div class="step-time">Today · 3:00 AM</div>
+          <div class="step-desc">Morning haul completed. Kingfish and Tiger Prawns sourced from night boats.</div>
+          <span class="step-tag">🐟 Catch timestamp logged</span>
+        </div>
+      </div>
+
+      <div class="step done">
+        <div class="step-icon">✓</div>
+        <div class="step-body">
+          <div class="step-title">Iced & Packed</div>
+          <div class="step-time">Today · 3:40 AM</div>
+          <div class="step-desc">Fish packed in ice slurry within 40 min of catch. Cold chain initiated at 2°C.</div>
+          <span class="step-tag">🧊 Cold chain started</span>
+        </div>
+      </div>
+
+      <div class="step done">
+        <div class="step-icon">✓</div>
+        <div class="step-body">
+          <div class="step-title">Dispatched from Malpe</div>
+          <div class="step-time">Today · 4:15 AM</div>
+          <div class="step-desc">Refrigerated van departed. Passed Udupi at 4:00 AM, Mangalore hub at 5:30 AM.</div>
+        </div>
+      </div>
+
+      <div class="step active">
+        <div class="step-icon">🚚</div>
+        <div class="step-body">
+          <div class="step-title">In Transit — Near Hassan</div>
+          <div class="step-time">Now · ~118 km to go</div>
+          <div class="step-desc">On NH75. Temperature holding steady at 3°C. ETA Bangalore 6:30 AM.</div>
+          <span class="step-tag">⟳ Live tracking active</span>
+        </div>
+      </div>
+
+      <div class="step pending">
+        <div class="step-icon">📦</div>
+        <div class="step-body">
+          <div class="step-title">Arrived at Bangalore Hub</div>
+          <div class="step-time">~6:30 AM</div>
+          <div class="step-desc">Sort and assign to delivery partner.</div>
+        </div>
+      </div>
+
+      <div class="step pending">
+        <div class="step-icon">🛵</div>
+        <div class="step-body">
+          <div class="step-title">Out for Delivery</div>
+          <div class="step-time">~7:00 AM</div>
+          <div class="step-desc">Delivery partner will pick up and head to Koramangala.</div>
+        </div>
+      </div>
+
+      <div class="step pending">
+        <div class="step-icon">🎉</div>
+        <div class="step-body">
+          <div class="step-title">Delivered</div>
+          <div class="step-time">~7:30 AM</div>
+          <div class="step-desc">Fresh catch at your doorstep — within 28 hrs of catch.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
