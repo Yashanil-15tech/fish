@@ -90,6 +90,20 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link {
+    color: #a8d5b0;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  @media(max-width:700px){ .nav-links { display: none; } }
+
   /* ── HERO ── */
   .hero {
     background: var(--green);
@@ -498,6 +512,11 @@
 <nav>
   <div class="logo">Malpe <span>Meen</span></div>
   <div class="nav-right">
+    <nav class="nav-links">
+      <a class="nav-link" href="index.html">🛒 Order</a>
+      <a class="nav-link" href="tracking.html">📍 Track Order</a>
+      <a class="nav-link" href="freshness.html">🧊 Freshness</a>
+    </nav>
     <div class="delivery-pill">🌊 Order before <strong>9 PM</strong> · next-day delivery</div>
     <button class="cart-btn" onclick="toggleCart()">
       🧺 Cart
