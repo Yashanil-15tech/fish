@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Freshness Report — Malpe Meen</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --green: #0d3d2e; --green-mid: #1a5c40; --green-light: #e8f5e0;
+    --accent: #5fcf80; --cream: #f7f4ef; --warm: #f0ede6;
+    --text: #1a1a1a; --muted: #777; --border: #e5e5e5; --white: #fff;
+    --good: #1a7a40; --good-bg: #e6f7ed;
+    --warn: #b05c00; --warn-bg: #fef0e4;
+    --bad: #8b1a1a; --bad-bg: #fdecea;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+
+  nav {
+    background: var(--green); padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--green-light); }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link {
+    color: #a8d5b0; font-size: 13px; font-weight: 500;
+    padding: 6px 12px; border-radius: 8px; text-decoration: none; transition: background 0.15s;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-link.active { background: rgba(255,255,255,0.12); color: #fff; }
+  @media(max-width:700px){ .nav-links { display: none; } nav { padding: 0 16px; } }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 36px 24px 80px; }
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: var(--green); margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+  /* KPI grid */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px; margin-bottom: 32px;
+  }
+  .kpi {
+    background: var(--white); border-radius: 14px;
+    border: 1.5px solid var(--border); padding: 16px 18px;
+  }
+  .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .kpi-val { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .kpi-val.good { color: var(--good); }
+  .kpi-val.warn { color: var(--warn); }
+  .kpi-val.neutral { color: var(--green); }
+  .kpi-desc { font-size: 11px; color: var(--muted); }
+  .kpi-badge {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px; margin-top: 6px;
+  }
+  .kpi-badge.good { background: var(--good-bg); color: var(--good); }
+  .kpi-badge.warn { background: var(--warn-bg); color: var(--warn); }
+
+  /* Section header */
+  .sec-head { margin-bottom: 16px; }
+  .sec-head h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--green); margin-bottom: 2px; }
+  .sec-head p { font-size: 12px; color: var(--muted); }
+
+  /* Freshness timeline bar */
+  .freshness-card {
+    background: var(--white); border-radius: 16px;
+    border: 1.5px solid var(--border); padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .timeline-bar-wrap { margin-bottom: 24px; }
+  .tbar-label { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .tbar-label span { font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  .tbar {
+    height: 14px; border-radius: 20px; background: #eee;
+    position: relative; overflow: visible; margin-bottom: 6px;
+  }
+  .tbar-fill {
+    height: 100%; border-radius: 20px;
+    transition: width 1s ease;
+  }
+  .tbar-fill.good { background: linear-gradient(90deg, #2ecc71, #5fcf80); }
+  .tbar-fill.warn { background: linear-gradient(90deg, #f39c12, #e67e22); }
+  .tbar-fill.bad  { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+
+  .tbar-marker {
+    position: absolute; top: -4px;
+    width: 4px; height: 22px; border-radius: 2px;
+    background: #333; opacity: 0.3;
+  }
+  .tbar-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); padding: 0 2px; }
+
+  /* Metric table */
+  .metric-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .metric-table th {
+    text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--muted); padding: 8px 12px;
+    border-bottom: 1.5px solid var(--border); background: var(--warm);
+  }
+  .metric-table th:first-child { border-radius: 8px 0 0 0; }
+  .metric-table th:last-child { border-radius: 0 8px 0 0; }
+  .metric-table td { padding: 12px; border-bottom: 1px solid #f5f5f5; vertical-align: top; }
+  .metric-table tr:last-child td { border-bottom: none; }
+  .metric-table tr:hover td { background: #fafafa; }
+
+  .metric-name { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .metric-what { font-size: 12px; color: var(--muted); }
+  .metric-val { font-weight: 700; font-size: 15px; }
+  .metric-val.good { color: var(--good); }
+  .metric-val.warn { color: var(--warn); }
+  .metric-val.neutral { color: var(--green); }
+  .metric-tells { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .pill {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 3px 9px; border-radius: 20px;
+  }
+  .pill.good { background: var(--good-bg); color: var(--good); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.neutral { background: var(--green-light); color: var(--green-mid); }
+
+  /* Boat info card */
+  .boat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media(max-width:600px){ .boat-grid { grid-template-columns: 1fr; } }
+
+  .boat-card {
+    background: var(--white); border-radius: 16px;
+    border: 1.5px solid var(--border); padding: 20px;
+  }
+  .boat-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .boat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--green-light); display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .boat-name { font-weight: 700; font-size: 15px; color: var(--green); }
+  .boat-reg { font-size: 11px; color: var(--muted); }
+  .boat-rows { }
+  .boat-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+  .boat-row:last-child { border-bottom: none; }
+  .boat-row-label { color: var(--muted); }
+  .boat-row-val { font-weight: 600; color: var(--text); }
+  .boat-row-val.green { color: var(--good); }
+
+  /* Origin map SVG card */
+  .origin-card {
+    background: var(--white); border-radius: 16px;
+    border: 1.5px solid var(--border); padding: 24px;
+    margin-bottom: 28px;
+  }
+  .origin-card h3 { font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 16px; }
+
+  /* Score ring */
+  .score-wrap {
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+    background: var(--green); border-radius: 16px; padding: 24px;
+    margin-bottom: 28px;
+  }
+  .score-ring { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-num {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: var(--white);
+    transform: rotate(0deg);
+  }
+  .score-num span { font-size: 11px; color: #a8d5b0; font-family: 'DM Sans',sans-serif; font-weight: 400; margin-top: -4px; }
+  .score-info h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--white); margin-bottom: 6px; }
+  .score-info p { font-size: 13px; color: #a8d5b0; line-height: 1.6; max-width: 400px; }
+  .score-factors { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .sf { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--green-light); }
+  .sf strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Malpe <span>Meen</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">🛒 Order</a>
+    <a class="nav-link" href="tracking.html">📍 Track Order</a>
+    <a class="nav-link active" href="freshness.html">🧊 Freshness</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-title">Freshness & Catch Report</div>
+  <div class="page-sub">Today's batch · Hauled 3:00 AM · Order #MM-20483</div>
+
+  <!-- Overall score -->
+  <div class="score-wrap">
+    <div class="score-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="10"/>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#5fcf80" stroke-width="10"
+          stroke-dasharray="264" stroke-dashoffset="40" stroke-linecap="round"/>
+      </svg>
+      <div class="score-num">85<span>/ 100</span></div>
+    </div>
+    <div class="score-info">
+      <h3>Freshness Score: Excellent</h3>
+      <p>This batch scores 85/100 based on catch-to-ice lag, cold chain integrity, and total transit time. Fish will arrive within 28 hours of catch — well within the 36-hour premium freshness window.</p>
+      <div class="score-factors">
+        <div class="sf">⏱ Catch-to-ice: <strong>40 min</strong></div>
+        <div class="sf">🌡 Cold chain: <strong>97%</strong></div>
+        <div class="sf">🚚 Transit: <strong>~7 hrs</strong></div>
+        <div class="sf">📦 Delivery: <strong>~28 hrs total</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Catch Timestamp</div>
+      <div class="kpi-val neutral" style="font-size:22px">3:00 AM</div>
+      <div class="kpi-desc">Night boat haul, Malpe port</div>
+      <div class="kpi-badge neutral">Logged by fisherman</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Landing Time</div>
+      <div class="kpi-val neutral" style="font-size:22px">3:20 AM</div>
+      <div class="kpi-desc">Fish reached shore dock</div>
+      <div class="kpi-badge good">20 min delay ✓</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Icing Time Lag</div>
+      <div class="kpi-val good">40 min</div>
+      <div class="kpi-desc">Catch → ice slurry</div>
+      <div class="kpi-badge good">Excellent ✓</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Transit Time</div>
+      <div class="kpi-val warn">~7 hrs</div>
+      <div class="kpi-desc">Malpe → Bangalore</div>
+      <div class="kpi-badge warn">Acceptable</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Delivery Time</div>
+      <div class="kpi-val good">~28 hrs</div>
+      <div class="kpi-desc">Catch → customer door</div>
+      <div class="kpi-badge good">Within 36hr window</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Cold Chain Integrity</div>
+      <div class="kpi-val good">97%</div>
+      <div class="kpi-desc">Time in ice conditions</div>
+      <div class="kpi-badge good">Strong ✓</div>
+    </div>
+  </div>
+
+  <!-- Freshness timeline bars -->
+  <div class="freshness-card">
+    <div class="sec-head">
+      <h2>Freshness Timeline</h2>
+      <p>How quickly each phase completed — shorter is better for quality</p>
+    </div>
+
+    <div class="timeline-bar-wrap">
+      <div class="tbar-label">Catch → Ice (target: &lt;60 min) <span>Actual: 40 min</span></div>
+      <div class="tbar">
+        <div class="tbar-fill good" style="width:33%"></div>
+        <div class="tbar-marker" style="left:50%"></div>
+      </div>
+      <div class="tbar-ticks"><span>0</span><span>30 min</span><span>60 min</span><span>90 min</span><span>120 min</span></div>
+    </div>
+
+    <div class="timeline-bar-wrap">
+      <div class="tbar-label">Icing → Dispatch (target: &lt;90 min) <span>Actual: 55 min</span></div>
+      <div class="tbar">
+        <div class="tbar-fill good" style="width:38%"></div>
+        <div class="tbar-marker" style="left:67%"></div>
+      </div>
+      <div class="tbar-ticks"><span>0</span><span>30</span><span>60</span><span>90</span><span>120 min</span></div>
+    </div>
+
+    <div class="timeline-bar-wrap">
+      <div class="tbar-label">Transit time (target: &lt;8 hrs) <span>Actual: ~7 hrs</span></div>
+      <div class="tbar">
+        <div class="tbar-fill warn" style="width:72%"></div>
+        <div class="tbar-marker" style="left:75%"></div>
+      </div>
+      <div class="tbar-ticks"><span>0</span><span>2 hrs</span><span>4 hrs</span><span>6 hrs</span><span>8+ hrs</span></div>
+    </div>
+
+    <div class="timeline-bar-wrap" style="margin-bottom:0">
+      <div class="tbar-label">Total catch → delivery (target: &lt;36 hrs) <span>Actual: ~28 hrs</span></div>
+      <div class="tbar">
+        <div class="tbar-fill good" style="width:62%"></div>
+        <div class="tbar-marker" style="left:75%"></div>
+      </div>
+      <div class="tbar-ticks"><span>0</span><span>12 hrs</span><span>24 hrs</span><span>36 hrs</span><span>48 hrs</span></div>
+    </div>
+  </div>
+
+  <!-- Metric breakdown table -->
+  <div class="freshness-card">
+    <div class="sec-head">
+      <h2>Freshness Metrics Breakdown</h2>
+      <p>Full KPI table for this batch</p>
+    </div>
+    <table class="metric-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>What it measures</th>
+          <th>This batch</th>
+          <th>How it's tracked</th>
+          <th>What it tells you</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="metric-name">Catch Timestamp</div></div></td>
+          <td><div class="metric-what">Time fish was caught</div></td>
+          <td><div class="metric-val neutral">3:00 AM</div><div class="pill neutral">Logged</div></td>
+          <td><div class="metric-what">Fisherman logs at haul</div></td>
+          <td><div class="metric-tells">Starting point of the freshness clock</div></td>
+        </tr>
+        <tr>
+          <td><div class="metric-name">Landing Time</div></td>
+          <td><div class="metric-what">Time fish reaches shore</div></td>
+          <td><div class="metric-val good">3:20 AM</div><div class="pill good">+20 min ✓</div></td>
+          <td><div class="metric-what">Recorded at dock</div></td>
+          <td><div class="metric-tells">Delay between catch and ice storage begins</div></td>
+        </tr>
+        <tr>
+          <td><div class="metric-name">Icing Time Lag</div></td>
+          <td><div class="metric-what">Catch → ice slurry</div></td>
+          <td><div class="metric-val good">40 min</div><div class="pill good">Excellent ✓</div></td>
+          <td><div class="metric-what">Catch time → ice slurry time</div></td>
+          <td><div class="metric-tells">Critical for quality — every hour without ice degrades texture and taste</div></td>
+        </tr>
+        <tr>
+          <td><div class="metric-name">Transit Time</div></td>
+          <td><div class="metric-what">Coast → Bangalore travel</div></td>
+          <td><div class="metric-val warn">~7 hrs</div><div class="pill warn">Acceptable</div></td>
+          <td><div class="metric-what">Dispatch → arrival timestamp</div></td>
+          <td><div class="metric-tells">Measures logistics efficiency on the Malpe–Bangalore corridor</div></td>
+        </tr>
+        <tr>
+          <td><div class="metric-name">Delivery Time</div></td>
+          <td><div class="metric-what">Total: catch → customer</div></td>
+          <td><div class="metric-val good">~28 hrs</div><div class="pill good">Within window ✓</div></td>
+          <td><div class="metric-what">Final delivery timestamp</div></td>
+          <td><div class="metric-tells">Your core freshness KPI — under 36 hrs is premium quality</div></td>
+        </tr>
+        <tr>
+          <td><div class="metric-name">Cold Chain Integrity</div></td>
+          <td><div class="metric-what">% time in ice conditions</div></td>
+          <td><div class="metric-val good">97%</div><div class="pill good">Strong ✓</div></td>
+          <td><div class="metric-what">Manual temp checks + logs every 2 hrs</div></td>
+          <td><div class="metric-tells">Ensures fish never left the cold chain — protects quality consistency</div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Boat info -->
+  <div class="sec-head">
+    <h2>Boat & Catch Origin</h2>
+    <p>Which boats sourced your fish today</p>
+  </div>
+  <div class="boat-grid">
+    <div class="boat-card">
+      <div class="boat-header">
+        <div class="boat-icon">⛵</div>
+        <div>
+          <div class="boat-name">MFB Laxmi Devi</div>
+          <div class="boat-reg">Reg: KA-MLP-0472 · Malpe Harbour</div>
+        </div>
+      </div>
+      <div class="boat-rows">
+        <div class="boat-row"><span class="boat-row-label">Captain</span><span class="boat-row-val">Ravi Shetty</span></div>
+        <div class="boat-row"><span class="boat-row-label">Departure</span><span class="boat-row-val">Yesterday 8 PM</span></div>
+        <div class="boat-row"><span class="boat-row-label">Haul time</span><span class="boat-row-val">3:00 AM</span></div>
+        <div class="boat-row"><span class="boat-row-label">Fishing zone</span><span class="boat-row-val">~18 nm offshore</span></div>
+        <div class="boat-row"><span class="boat-row-label">Catch supplied</span><span class="boat-row-val green">Kingfish, Mackerel</span></div>
+        <div class="boat-row"><span class="boat-row-label">Total catch (today)</span><span class="boat-row-val">~80 kg</span></div>
+      </div>
+    </div>
+
+    <div class="boat-card">
+      <div class="boat-header">
+        <div class="boat-icon">🚤</div>
+        <div>
+          <div class="boat-name">MFB Samudra Raja</div>
+          <div class="boat-reg">Reg: KA-MNG-1103 · Old Port, Mangalore</div>
+        </div>
+      </div>
+      <div class="boat-rows">
+        <div class="boat-row"><span class="boat-row-label">Captain</span><span class="boat-row-val">Suresh Bangera</span></div>
+        <div class="boat-row"><span class="boat-row-label">Departure</span><span class="boat-row-val">Yesterday 9 PM</span></div>
+        <div class="boat-row"><span class="boat-row-label">Haul time</span><span class="boat-row-val">4:30 AM</span></div>
+        <div class="boat-row"><span class="boat-row-label">Fishing zone</span><span class="boat-row-val">~12 nm offshore</span></div>
+        <div class="boat-row"><span class="boat-row-label">Catch supplied</span><span class="boat-row-val green">Tiger Prawns, Squid</span></div>
+        <div class="boat-row"><span class="boat-row-label">Total catch (today)</span><span class="boat-row-val">~55 kg</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Origin SVG map -->
+  <div class="origin-card">
+    <h3>🗺 Catch Origin — Coastal Karnataka</h3>
+    <svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+      <!-- Sea -->
+      <rect x="0" y="0" width="700" height="320" fill="#daeef8" rx="10"/>
+      <!-- Land -->
+      <path d="M 200,0 L 700,0 L 700,320 L 200,320 C 200,320 180,200 190,100 Z" fill="#e8f5e0"/>
+      <!-- Coastline detail -->
+      <path d="M 200,0 C 205,50 195,100 200,150 C 205,200 195,250 200,320" stroke="#b8dfc8" stroke-width="2" fill="none"/>
+
+      <!-- Malpe fishing zone -->
+      <circle cx="130" cy="130" r="40" fill="#0d3d2e" opacity="0.07" stroke="#0d3d2e" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <circle cx="130" cy="130" r="6" fill="#0d3d2e" opacity="0.6"/>
+      <text x="130" y="115" text-anchor="middle" font-size="11" fill="#0d3d2e" font-weight="600" font-family="DM Sans,sans-serif" opacity="0.8">Malpe zone</text>
+      <text x="130" y="127" text-anchor="middle" font-size="10" fill="#0d3d2e" font-family="DM Sans,sans-serif" opacity="0.6">~18 nm</text>
+
+      <!-- Mangalore fishing zone -->
+      <circle cx="100" cy="220" r="32" fill="#1a5c40" opacity="0.07" stroke="#1a5c40" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <circle cx="100" cy="220" r="6" fill="#1a5c40" opacity="0.6"/>
+      <text x="100" y="206" text-anchor="middle" font-size="11" fill="#1a5c40" font-weight="600" font-family="DM Sans,sans-serif" opacity="0.8">Mangalore zone</text>
+      <text x="100" y="218" text-anchor="middle" font-size="10" fill="#1a5c40" font-family="DM Sans,sans-serif" opacity="0.6">~12 nm</text>
+
+      <!-- Ports on coast -->
+      <circle cx="205" cy="130" r="8" fill="#0d3d2e"/>
+      <circle cx="205" cy="130" r="4" fill="#5fcf80"/>
+      <text x="220" y="126" font-size="12" font-weight="700" fill="#0d3d2e" font-family="DM Sans,sans-serif">Malpe Port</text>
+      <text x="220" y="139" font-size="11" fill="#666" font-family="DM Sans,sans-serif">Kingfish · Mackerel</text>
+
+      <circle cx="205" cy="215" r="8" fill="#1a5c40"/>
+      <circle cx="205" cy="215" r="4" fill="#5fcf80"/>
+      <text x="220" y="211" font-size="12" font-weight="700" fill="#1a5c40" font-family="DM Sans,sans-serif">Mangalore Port</text>
+      <text x="220" y="224" font-size="11" fill="#666" font-family="DM Sans,sans-serif">Prawns · Squid · Crab</text>
+
+      <!-- Udupi town -->
+      <circle cx="230" cy="155" r="5" fill="#888"/>
+      <text x="240" y="160" font-size="11" fill="#666" font-family="DM Sans,sans-serif">Udupi</text>
+
+      <!-- Route arrow to Bangalore -->
+      <path d="M 260,140 C 350,120 450,80 560,60" stroke="#0d3d2e" stroke-width="2" stroke-dasharray="6 4" fill="none" opacity="0.4" marker-end="url(#a2)"/>
+      <defs>
+        <marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#0d3d2e" opacity="0.5"/>
+        </marker>
+      </defs>
+      <circle cx="570" cy="55" r="8" fill="#c45e0a"/>
+      <circle cx="570" cy="55" r="4" fill="white"/>
+      <text x="585" y="52" font-size="12" font-weight="700" fill="#c45e0a" font-family="DM Sans,sans-serif">Bangalore</text>
+      <text x="585" y="64" font-size="10" fill="#888" font-family="DM Sans,sans-serif">~360 km · ~7 hr drive</text>
+
+      <!-- Legend -->
+      <rect x="10" y="270" width="180" height="42" rx="8" fill="white" opacity="0.8"/>
+      <circle cx="26" cy="284" r="5" fill="#0d3d2e" opacity="0.5"/>
+      <text x="36" y="288" font-size="11" fill="#333" font-family="DM Sans,sans-serif">Fishing zone</text>
+      <circle cx="26" cy="302" r="5" fill="#0d3d2e"/>
+      <circle cx="26" cy="302" r="3" fill="#5fcf80"/>
+      <text x="36" y="306" font-size="11" fill="#333" font-family="DM Sans,sans-serif">Landing port</text>
+
+      <!-- Sea label -->
+      <text x="80" y="310" font-size="13" fill="#7ab5d0" font-family="DM Sans,sans-serif" font-style="italic">Arabian Sea</text>
+    </svg>
+  </div>
+
+</div>
+</body>
+</html>
