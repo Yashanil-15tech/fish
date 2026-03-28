@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FreshCatch — Fresh Fish, Next Morning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --green: #0d3d2e;
+    --green-mid: #1a5c40;
+    --green-light: #e8f5e0;
+    --accent: #5fcf80;
+    --cream: #f7f4ef;
+    --warm: #f0ede6;
+    --text: #1a1a1a;
+    --muted: #888;
+    --border: #e5e5e5;
+    --white: #fff;
+    --red: #8b1a1a;
+    --red-light: #ffb3b3;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--green);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    color: var(--green-light);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+
+  .nav-right { display: flex; align-items: center; gap: 20px; }
+
+  .delivery-pill {
+    background: var(--green-mid);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #a8d5b0;
+  }
+  .delivery-pill strong { color: var(--green-light); }
+
+  .cart-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 50px;
+    padding: 9px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .cart-btn:hover { transform: scale(1.04); background: #4dbf6e; }
+
+  .cart-badge {
+    background: var(--green);
+    color: var(--accent);
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--green);
+    padding: 60px 40px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    right: -80px; top: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(95, 207, 128, 0.07);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: 100px; bottom: -120px;
+    width: 250px; height: 250px;
+    border-radius: 50%;
+    background: rgba(95, 207, 128, 0.05);
+  }
+
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(40px, 6vw, 72px);
+    color: var(--green-light);
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: var(--accent); }
+
+  .hero p {
+    font-size: 16px;
+    color: #a8d5b0;
+    max-width: 460px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .hero-tags { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-tag {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #a8d5b0;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 40px 40px 120px; }
+
+  /* ── SEARCH + FILTERS ── */
+  .controls {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 220px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: var(--green); }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .chip {
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    border-radius: 50px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--green); color: var(--green); }
+  .chip.active { background: var(--green); border-color: var(--green); color: var(--white); }
+
+  /* ── SECTION TITLE ── */
+  .section-head { margin-bottom: 20px; }
+  .section-head h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+  .section-head p { font-size: 13px; color: var(--muted); }
+
+  /* ── FISH GRID ── */
+  .fish-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .fish-card {
+    background: var(--white);
+    border-radius: 18px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+  .fish-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.09); }
+
+  .fish-img {
+    height: 120px;
+    background: linear-gradient(135deg, #e8f5e0, #d0eed8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 56px;
+    position: relative;
+  }
+
+  .tag {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: var(--green);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .tag.limited { background: var(--red); color: var(--red-light); }
+
+  .fish-info { padding: 12px 14px 14px; }
+  .fish-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .fish-local { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .fish-origin { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+
+  .fish-bottom { display: flex; justify-content: space-between; align-items: center; }
+
+  .fish-price { font-weight: 700; font-size: 16px; color: var(--green); }
+  .fish-unit { font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  .add-btn {
+    background: var(--green);
+    border: none;
+    border-radius: 9px;
+    width: 32px; height: 32px;
+    color: var(--white);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    line-height: 1;
+  }
+  .add-btn:hover { background: var(--green-mid); }
+
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-btn {
+    background: var(--warm);
+    border: none;
+    border-radius: 7px;
+    width: 28px; height: 28px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.1s;
+  }
+  .qty-btn:hover { background: #e0dbd2; }
+  .qty-num { font-size: 14px; font-weight: 700; color: var(--green); min-width: 18px; text-align: center; }
+
+  .empty-msg {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  /* ── CART SIDEBAR ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  .cart-sidebar {
+    position: fixed;
+    top: 0; right: 0;
+    width: 420px;
+    max-width: 100vw;
+    height: 100vh;
+    background: var(--white);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: -8px 0 40px rgba(0,0,0,0.12);
+  }
+  .cart-sidebar.open { transform: translateX(0); }
+
+  .cart-head {
+    background: var(--green);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .cart-head h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--green-light);
+  }
+  .close-btn {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    color: var(--green-light);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.2); }
+
+  .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+  .cart-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .cart-empty .e { font-size: 50px; margin-bottom: 12px; }
+
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .ci-emoji {
+    width: 50px; height: 50px;
+    background: var(--green-light);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .ci-info { flex: 1; }
+  .ci-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .ci-price { font-size: 12px; color: var(--muted); }
+  .ci-ctrl { display: flex; align-items: center; gap: 8px; }
+  .ci-ctrl button {
+    background: var(--warm);
+    border: none;
+    border-radius: 6px;
+    width: 26px; height: 26px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--green);
+  }
+  .ci-ctrl span { font-size: 13px; font-weight: 700; color: var(--green); min-width: 16px; text-align: center; }
+
+  /* Date & Slot */
+  .booking-section {
+    background: var(--warm);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 20px;
+  }
+  .booking-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .date-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .date-opt {
+    flex: 1;
+    text-align: center;
+    padding: 9px 4px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .date-opt:hover { border-color: var(--green); }
+  .date-opt.sel { background: var(--green); border-color: var(--green); }
+  .date-opt .d { font-size: 10px; color: var(--muted); display: block; }
+  .date-opt .n { font-size: 17px; font-weight: 700; color: var(--text); display: block; }
+  .date-opt .m { font-size: 10px; color: var(--muted); display: block; }
+  .date-opt.sel .d,.date-opt.sel .n,.date-opt.sel .m { color: var(--accent); }
+
+  .slots { display: flex; gap: 8px; flex-wrap: wrap; }
+  .slot {
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .slot:hover { border-color: var(--green); }
+  .slot.sel { background: var(--green); border-color: var(--green); color: var(--accent); font-weight: 600; }
+
+  .cart-foot {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .total-label { font-size: 14px; font-weight: 500; }
+  .total-amt {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .checkout-btn {
+    width: 100%;
+    background: var(--green);
+    color: var(--accent);
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .checkout-btn:hover { background: var(--green-mid); }
+
+  /* ── SUCCESS ── */
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    height: 100%;
+  }
+  .success-screen.show { display: flex; }
+  .success-screen .big { font-size: 72px; margin-bottom: 16px; }
+  .success-screen h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+  .success-screen p { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .success-screen button {
+    background: var(--green);
+    color: var(--accent);
+    border: none;
+    border-radius: 12px;
+    padding: 13px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    nav { padding: 0 16px; }
+    .delivery-pill { display: none; }
+    .hero { padding: 36px 16px 50px; }
+    .main { padding: 24px 16px 100px; }
+    .controls { flex-direction: column; gap: 10px; }
+    .cart-sidebar { width: 100vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Fresh<span>Catch</span></div>
+  <div class="nav-right">
+    <div class="delivery-pill">🌊 Order before <strong>9 PM</strong> · next-day delivery</div>
+    <button class="cart-btn" onclick="toggleCart()">
+      🧺 Cart
+      <span class="cart-badge" id="cartCount">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Fresh from the<br><span>sea to your door.</span></h1>
+    <p>Order tonight, wake up to the freshest catch from Malpe & Mangalore ports — cleaned and ready to cook.</p>
+    <div class="hero-tags">
+      <div class="hero-tag">🐟 Sourced daily</div>
+      <div class="hero-tag">🧊 Ice-packed delivery</div>
+      <div class="hero-tag">✂️ Cleaning available</div>
+      <div class="hero-tag">📍 Udupi & Mangalore</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="controls">
+    <input class="search-box" placeholder="🔍  Search fish, prawns, crabs..." id="searchInput" oninput="render()" />
+    <div class="filters">
+      <div class="chip active" onclick="setFilter('All',this)">All</div>
+      <div class="chip" onclick="setFilter('Coastal',this)">🐟 Coastal</div>
+      <div class="chip" onclick="setFilter('Deep Sea',this)">🌊 Deep Sea</div>
+      <div class="chip" onclick="setFilter('Shellfish',this)">🦞 Shellfish</div>
+      <div class="chip" onclick="setFilter('Freshwater',this)">🎣 Freshwater</div>
+      <div class="chip" onclick="setFilter('Cleaned',this)">✂️ Cleaned</div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>Today's Haul</h2>
+    <p>Updated 5 AM · Fresh from Malpe & Mangalore ports</p>
+  </div>
+
+  <div class="fish-grid" id="fishGrid"></div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="toggleCart()"></div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-head">
+    <h2>Your Booking</h2>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
+  </div>
+
+  <!-- Normal cart view -->
+  <div id="cartView" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div class="cart-body" id="cartBody"></div>
+    <div class="cart-foot" id="cartFoot" style="display:none">
+      <div class="total-row">
+        <span class="total-label">Total</span>
+        <span class="total-amt" id="totalAmt">₹0</span>
+      </div>
+      <button class="checkout-btn" onclick="placeOrder()">Confirm Booking →</button>
+    </div>
+  </div>
+
+  <!-- Success view -->
+  <div class="success-screen" id="successView">
+    <div class="big">🎉</div>
+    <h2>Booking Confirmed!</h2>
+    <p>Your fresh catch will arrive tomorrow morning.<br>You'll get a WhatsApp reminder at 7 PM tonight.</p>
+    <button onclick="resetOrder()">Book Again</button>
+  </div>
+</div>
+
+<script>
+const catalog = [
+  {id:1,name:'Rohu',local:'ರೋಹು',emoji:'🐟',price:180,unit:'500g',tag:'Fresh',cat:'Freshwater',origin:'Udupi farms'},
+  {id:2,name:'Kingfish (Surmai)',local:'ಸುರ್ಮಾಯಿ',emoji:'🐡',price:380,unit:'500g',tag:'Popular',cat:'Coastal',origin:'Malpe port'},
+  {id:3,name:'Tiger Prawns',local:'ಸೊಳ್ಳೆ',emoji:'🦐',price:520,unit:'500g',tag:'Premium',cat:'Shellfish',origin:'Mangalore'},
+  {id:4,name:'Pomfret',local:'ಅವೊಲಿ',emoji:'🐠',price:560,unit:'500g',tag:'Fresh',cat:'Coastal',origin:'Malpe port'},
+  {id:5,name:'Catla',local:'ಕಟ್ಲಾ',emoji:'🐟',price:160,unit:'500g',tag:'',cat:'Freshwater',origin:'Udupi farms'},
+  {id:6,name:'Mud Crab',local:'ಏಡಿ',emoji:'🦀',price:650,unit:'kg',tag:'Limited',cat:'Shellfish',origin:'Mangalore'},
+  {id:7,name:'Mackerel (Bangda)',local:'ಬಂಗಡೆ',emoji:'🐟',price:120,unit:'500g',tag:'Fresh',cat:'Coastal',origin:'Malpe port'},
+  {id:8,name:'Cleaned Bangda',local:'ಕ್ಲೀನ್ ಬಂಗಡೆ',emoji:'🐟',price:150,unit:'500g',tag:'Cleaned',cat:'Cleaned',origin:'Ready to cook'},
+  {id:9,name:'Seer Fish (Neimeen)',local:'ನೇಯ್ಮೀನ್',emoji:'🐡',price:480,unit:'500g',tag:'',cat:'Deep Sea',origin:'Malpe port'},
+  {id:10,name:'Squid (Kolmbi)',local:'ಕಾಳ್ ಮೇನ್',emoji:'🦑',price:300,unit:'500g',tag:'Popular',cat:'Deep Sea',origin:'Mangalore'},
+  {id:11,name:'Lady Fish (Kane)',local:'ಕಾಣೆ',emoji:'🐟',price:220,unit:'500g',tag:'Fresh',cat:'Coastal',origin:'Malpe port'},
+  {id:12,name:'Lobster',local:'ಕಡಲ ಏಡಿ',emoji:'🦞',price:900,unit:'kg',tag:'Premium',cat:'Shellfish',origin:'Mangalore'},
+];
+
+let cart = {};
+let activeFilter = 'All';
+let selDate = 0;
+let selSlot = 0;
+
+const slots = ['6–8 AM', '8–10 AM', '10–12 PM'];
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  return catalog.filter(f => {
+    const mc = activeFilter === 'All' || f.cat === activeFilter;
+    const mq = !q || f.name.toLowerCase().includes(q) || f.local.includes(q);
+    return mc && mq;
+  });
+}
+
+function setFilter(cat, el) {
+  activeFilter = cat;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function render() {
+  const list = getFiltered();
+  const grid = document.getElementById('fishGrid');
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-msg">🐠 No fish found — try a different search</div>';
+    return;
+  }
+  grid.innerHTML = list.map(f => {
+    const qty = cart[f.id]?.qty || 0;
+    return `<div class="fish-card">
+      <div class="fish-img">
+        <span>${f.emoji}</span>
+        ${f.tag ? `<span class="tag${f.tag==='Limited'?' limited':''}">${f.tag}</span>` : ''}
+      </div>
+      <div class="fish-info">
+        <div class="fish-name">${f.name}</div>
+        <div class="fish-local">${f.local}</div>
+        <div class="fish-origin">📍 ${f.origin}</div>
+        <div class="fish-bottom">
+          <div>
+            <span class="fish-price">₹${f.price}</span>
+            <span class="fish-unit">/${f.unit}</span>
+          </div>
+          ${qty === 0
+            ? `<button class="add-btn" onclick="add(${f.id})">+</button>`
+            : `<div class="qty-ctrl">
+                <button class="qty-btn" onclick="dec(${f.id})">−</button>
+                <span class="qty-num">${qty}</span>
+                <button class="qty-btn" onclick="add(${f.id})">+</button>
+              </div>`
+          }
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function add(id) {
+  const f = catalog.find(x => x.id === id);
+  if (!cart[id]) cart[id] = { ...f, qty: 0 };
+  cart[id].qty++;
+  update();
+}
+function dec(id) {
+  if (!cart[id]) return;
+  cart[id].qty--;
+  if (cart[id].qty <= 0) delete cart[id];
+  update();
+}
+
+function update() {
+  const total = Object.values(cart).reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = total;
+  render();
+  if (document.getElementById('cartSidebar').classList.contains('open')) renderCart();
+}
+
+function toggleCart() {
+  const sb = document.getElementById('cartSidebar');
+  const ov = document.getElementById('overlay');
+  const isOpen = sb.classList.toggle('open');
+  ov.classList.toggle('open', isOpen);
+  if (isOpen) renderCart();
+}
+
+function renderCart() {
+  const items = Object.values(cart);
+  const body = document.getElementById('cartBody');
+  const foot = document.getElementById('cartFoot');
+
+  if (!items.length) {
+    body.innerHTML = `<div class="cart-empty"><div class="e">🐠</div><p>Your cart is empty.<br>Add some fish!</p></div>`;
+    foot.style.display = 'none';
+    return;
+  }
+
+  const dates = getDates();
+  body.innerHTML = `
+    ${items.map(i => `
+      <div class="cart-item">
+        <div class="ci-emoji">${i.emoji}</div>
+        <div class="ci-info">
+          <div class="ci-name">${i.name}</div>
+          <div class="ci-price">₹${i.price}/${i.unit} × ${i.qty} = ₹${i.price * i.qty}</div>
+        </div>
+        <div class="ci-ctrl">
+          <button onclick="dec(${i.id})">−</button>
+          <span>${i.qty}</span>
+          <button onclick="add(${i.id})">+</button>
+        </div>
+      </div>
+    `).join('')}
+
+    <div class="booking-section">
+      <div class="booking-label">Delivery Date</div>
+      <div class="date-row">
+        ${dates.map((d, i) => `
+          <div class="date-opt${selDate===i?' sel':''}" onclick="pickDate(${i})">
+            <span class="d">${d.day}</span>
+            <span class="n">${d.num}</span>
+            <span class="m">${d.mon}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="booking-label">Time Slot</div>
+      <div class="slots">
+        ${slots.map((s, i) => `
+          <div class="slot${selSlot===i?' sel':''}" onclick="pickSlot(${i})">${s}</div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('totalAmt').textContent = '₹' + total;
+  foot.style.display = 'block';
+}
+
+function pickDate(i) { selDate = i; renderCart(); }
+function pickSlot(i) { selSlot = i; renderCart(); }
+
+function getDates() {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return [1,2,3].map(offset => {
+    const d = new Date(); d.setDate(d.getDate() + offset);
+    return { day: days[d.getDay()], num: d.getDate(), mon: months[d.getMonth()] };
+  });
+}
+
+function placeOrder() {
+  document.getElementById('cartView').style.display = 'none';
+  document.getElementById('successView').classList.add('show');
+}
+
+function resetOrder() {
+  cart = {};
+  update();
+  document.getElementById('cartView').style.display = 'flex';
+  document.getElementById('successView').classList.remove('show');
+  toggleCart();
+}
+
+render();
+</script>
+</body>
+</html>
